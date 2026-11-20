@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Switzerland in Late June</title>
+<style>
+:root{
+  /* Layout idea: Apple-style stacked bands — big type, quiet surfaces, one interactive map at the center */
+  --bg:#ffffff; --bg-alt:#f5f5f7; --ink:#1d1d1f; --ink-2:#6e6e73; --line:#d2d2d7;
+  --accent:#0071e3; --route:#0b8a7a; --gx:#c96a00;
+  --ok:#1a7f45; --ok-bg:#e6f4ea; --no:#c4000f; --no-bg:#fdecec; --chk:#9a4a00; --chk-bg:#fff2e0;
+  --map-land:#ffffff; --card:#ffffff;
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#000000; --bg-alt:#161617; --ink:#f5f5f7; --ink-2:#a1a1a6; --line:#3a3a3c;
+  --accent:#2997ff; --route:#2dd4bf; --gx:#ffae3d;
+  --ok:#30d158; --ok-bg:#0f2a19; --no:#ff6961; --no-bg:#3a1210; --chk:#ffb340; --chk-bg:#33230a;
+  --map-land:#1d1d1f; --card:#1d1d1f; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#000000; --bg-alt:#161617; --ink:#f5f5f7; --ink-2:#a1a1a6; --line:#3a3a3c;
+  --accent:#2997ff; --route:#2dd4bf; --gx:#ffae3d;
+  --ok:#30d158; --ok-bg:#0f2a19; --no:#ff6961; --no-bg:#3a1210; --chk:#ffb340; --chk-bg:#33230a;
+  --map-land:#1d1d1f; --card:#1d1d1f; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-0.02em}
+[tabindex="-1"]:focus{outline:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+.band{padding:72px 0}
+.band.alt{background:var(--bg-alt)}
+.eyebrow{font-size:14px;font-weight:600;color:var(--ink-2);letter-spacing:0.02em;margin:0 0 8px}
+.lede{font-size:21px;color:var(--ink-2);max-width:40ch;margin:14px 0 0}
+/* top bar + dropdown menu */
+nav.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid var(--line)}
+nav.top .wrap{display:flex;gap:14px;align-items:center;height:48px;font-size:13px;position:relative}
+.menu-btn{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:none;border:0;border-radius:8px;padding:6px 10px 6px 8px;margin-left:-8px;cursor:pointer}
+.menu-btn:hover,.menu-btn[aria-expanded="true"]{background:var(--bg-alt)}
+.menu-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.burger{position:relative;display:block;width:18px;height:12px}
+.burger span{position:absolute;left:0;width:100%;height:2px;border-radius:2px;background:currentColor;transition:transform .2s,opacity .2s}
+.burger span:nth-child(1){top:0}
+.burger span:nth-child(2){top:5px}
+.burger span:nth-child(3){top:10px}
+.menu-btn[aria-expanded="true"] .burger span:nth-child(1){transform:translateY(5px) rotate(45deg)}
+.menu-btn[aria-expanded="true"] .burger span:nth-child(2){opacity:0}
+.menu-btn[aria-expanded="true"] .burger span:nth-child(3){transform:translateY(-5px) rotate(-45deg)}
+.brand{font-weight:600;color:var(--ink);opacity:.8}
+.brand:hover{text-decoration:none;opacity:1}
+.menu{position:absolute;top:calc(100% + 6px);left:14px;width:min(320px,calc(100vw - 28px));background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.18);padding:8px;margin:0;list-style:none;opacity:0;transform:translateY(-6px) scale(.98);transform-origin:top left;visibility:hidden;transition:opacity .16s,transform .16s,visibility 0s .16s}
+.menu.open{opacity:1;transform:none;visibility:visible;transition:opacity .16s,transform .16s}
+.menu a{display:block;padding:10px 12px;border-radius:10px;color:var(--ink);font-size:15px;font-weight:600;line-height:1.3}
+.menu a small{display:block;font-weight:400;font-size:13px;color:var(--ink-2);margin-top:2px}
+.menu a:hover,.menu a:focus-visible{background:var(--bg-alt);text-decoration:none;outline:none}
+.menu a:focus-visible{box-shadow:inset 0 0 0 2px var(--accent)}
+.menu a[aria-current="page"]{color:var(--accent)}
+.menu .sep{border-top:1px solid var(--line);margin:6px 4px}
+/* hero */
+.hero{text-align:center;padding:64px 0 0;overflow:hidden}
+.hero h1{font-size:clamp(44px,8vw,88px);font-weight:700;line-height:1.02}
+.hero .lede{margin:16px auto 0;font-size:clamp(19px,2.4vw,26px)}
+.hero canvas{display:block;width:100%;height:220px;margin-top:36px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:-1px;padding:28px 0 8px}
+.stat{text-align:center}
+.stat strong{display:block;font-family:var(--display);font-size:34px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--ink-2)}
+/* dog toggle */
+.dogbar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 22px;margin-top:28px}
+.dogbar p{margin:0;max-width:60ch;color:var(--ink-2);font-size:15px}
+.dogbar p b{color:var(--ink)}
+.switch{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;cursor:pointer;user-select:none}
+.switch input{appearance:none;width:51px;height:31px;border-radius:31px;background:var(--line);position:relative;cursor:pointer;transition:background .2s;margin:0;flex:0 0 auto}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.switch input:checked{background:var(--ok)}
+.switch input:checked::after{transform:translateX(20px)}
+.switch input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.switch.mini{margin-left:auto;font-size:13px;gap:8px;color:var(--ink);opacity:.9}
+.switch.mini input{width:38px;height:23px}
+.switch.mini input::after{width:19px;height:19px}
+.switch.mini input:checked::after{transform:translateX(15px)}
+/* legend chips */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;vertical-align:2px}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.no{background:var(--no-bg);color:var(--no)}
+.pill.chk{background:var(--chk-bg);color:var(--chk)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+/* planner */
+.days{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;margin:28px 0 8px;scrollbar-width:thin}
+.days button{flex:0 0 auto;font:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 16px;cursor:pointer;font-variant-numeric:tabular-nums}
+.days button small{display:block;font-weight:400;color:var(--ink-2);font-size:12px}
+.days button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.days button[aria-pressed="true"] small{color:var(--bg);opacity:.75}
+.days button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.planner{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
+.mapcard{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:10px;position:sticky;top:64px}
+.mapcard svg{display:block;width:100%;height:auto}
+.maplegend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--ink-2);padding:6px 10px 6px}
+.maplegend i{display:inline-block;width:22px;height:0;border-top:3px solid var(--route);vertical-align:3px;margin-right:6px}
+.maplegend i.gx{border-top:3px dashed var(--gx)}
+.maplegend i.dot{width:9px;height:9px;border:0;border-radius:50%;background:var(--accent);vertical-align:0}
+.detail{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px}
+.detail h3{font-size:28px;font-weight:700;line-height:1.15}
+.detail .meta{color:var(--ink-2);font-size:15px;margin:8px 0 0}
+.detail h4{font-size:13px;font-weight:600;color:var(--ink-2);margin:22px 0 8px;letter-spacing:.02em}
+.sites{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.sites li{padding:12px 0;border-top:1px solid var(--line)}
+.sites li:first-child{border-top:0}
+.sites .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.sites .name{font-weight:600}
+.sites .time{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;margin-right:6px}
+.sites p{margin:4px 0 0;font-size:15px;color:var(--ink-2)}
+.sites .alt{margin-top:6px;font-size:14px;color:var(--ok);font-weight:500}
+.sites .alt::before{content:"With your dog: ";font-weight:700}
+.dog .pet-no .name,.dog .pet-no .time{text-decoration:line-through;text-decoration-color:var(--no)}
+.dog .pet-no>p{opacity:.6}
+.hotelbox{border-radius:14px;background:var(--bg-alt);padding:14px 16px;font-size:15px}
+.hotelbox b{display:block;font-size:16px}
+.hotelbox p{margin:4px 0 0;color:var(--ink-2)}
+.tip{font-size:15px;color:var(--ink-2);margin:0}
+.navrow{display:flex;justify-content:space-between;margin-top:22px}
+.navrow button{font:inherit;font-size:15px;color:var(--accent);background:none;border:0;cursor:pointer;padding:6px 0}
+.navrow button:disabled{color:var(--ink-2);opacity:.4;cursor:default}
+.navrow button:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+/* hotels */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin-top:36px}
+.hcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:8px}
+.hcard .base{font-size:13px;font-weight:600;color:var(--ink-2)}
+.hcard h3{font-size:21px;font-weight:700}
+.hcard p{margin:0;font-size:15px;color:var(--ink-2)}
+.hcard.pick{border:2px solid var(--accent)}
+.hcard .badge{align-self:flex-start;font-size:12px;font-weight:600;color:var(--accent)}
+.dog .hcard.pet-no{opacity:.55}
+/* before you go */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:36px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
+.panel h3{font-size:21px;font-weight:700;margin-bottom:12px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{display:grid;grid-template-columns:92px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+.steps li:first-child{border-top:0}
+.steps .when{font-weight:600;font-variant-numeric:tabular-nums}
+.panel ul.plain{margin:0;padding-left:18px;font-size:15px;color:var(--ink-2)}
+.panel ul.plain li{margin:6px 0}
+.panel ul.plain b{color:var(--ink)}
+.warn{border-color:var(--no);background:linear-gradient(var(--card),var(--card)) padding-box}
+.refs{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 28px}
+.refs li{padding:14px 0;border-top:1px solid var(--line);font-size:15px}
+.refs li span{display:block;color:var(--ink-2);font-size:13px}
+footer{padding:28px 0 56px;color:var(--ink-2);font-size:12px}
+@media (max-width:820px){
+  .planner{grid-template-columns:1fr}
+  .mapcard{position:static}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:22px}
+  .band{padding:56px 0}
+  .steps li{grid-template-columns:78px 1fr}
+}
+@media (max-width:420px){.brand{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<nav class="top" aria-label="Site"><div class="wrap">
+  <button type="button" class="menu-btn" id="menubtn" aria-expanded="false" aria-controls="menu">
+    <span class="burger" aria-hidden="true"><span></span><span></span><span></span></span>Menu
+  </button>
+  <a class="brand" href="#home">Switzerland · June</a>
+  <label class="switch mini" for="dogmode-nav"><input type="checkbox" class="dogtoggle" id="dogmode-nav" role="switch"> With my dog</label>
+  <ul class="menu" id="menu">
+    <li><a href="#home">Home<small>Overview of the trip</small></a></li>
+    <li class="sep" role="presentation"></li>
+    <li><a href="#plan">Day by day<small>Route map and daily plan</small></a></li>
+    <li><a href="#hotels">Hotels<small>Six five-star bases</small></a></li>
+    <li><a href="#dog">Dog checklist<small>Paperwork and transport rules</small></a></li>
+    <li><a href="#book">Book ahead<small>What to reserve first</small></a></li>
+    <li><a href="#refs">References<small>Official sources</small></a></li>
+  </ul>
+</div></nav>
+
+<header class="hero" data-view="home">
+  <div class="wrap">
+    <p class="eyebrow">Late June · 11 nights · first class all the way</p>
+    <h1>Switzerland.<br>Peaks, lakes, palaces.</h1>
+    <p class="lede">Lucerne to the Jungfrau, Gstaad, Zermatt and the Engadin, timed for wildflowers and early light.</p>
+  </div>
+  <canvas id="ridge" aria-hidden="true"></canvas>
+</header>
+
+<section class="band alt" style="padding-top:8px" data-view="home">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><strong>12</strong><span>days</span></div>
+      <div class="stat"><strong>6</strong><span>bases</span></div>
+      <div class="stat"><strong>4,000 m</strong><span>peaks in view</span></div>
+      <div class="stat"><strong>~5:30</strong><span>sunrise</span></div>
+    </div>
+    <div class="dogbar">
+      <p><b>Bringing your dog?</b> Anything that doesn't allow dogs is flagged throughout. Turn this on to cross those items out and switch to the dog-friendly hotel and train for each day.</p>
+      <label class="switch" for="dogmode"><input type="checkbox" class="dogtoggle" id="dogmode" role="switch"> Traveling with my dog</label>
+    </div>
+    <div class="legend" aria-label="Legend">
+      <span class="pill ok">Dogs welcome</span>
+      <span class="pill chk">Check ahead</span>
+      <span class="pill no">No dogs</span>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="plan" data-view="plan">
+  <div class="wrap">
+    <p class="eyebrow">The route</p>
+    <h2 style="font-size:clamp(34px,5vw,56px);font-weight:700">Day by day.</h2>
+    <p class="lede">Tap a day to see its route on the map, what to do and where you're staying.</p>
+    <div class="days" id="days" role="group" aria-label="Choose a day"></div>
+    <div class="planner">
+      <div class="mapcard">
+        <svg id="map" viewBox="0 0 940 640" role="img" aria-label="Map of Switzerland showing the trip route"></svg>
+        <div class="maplegend"><span><i></i>Scenic trains</span><span><i class="gx"></i>Glacier Express</span><span><i class="dot"></i>Sights for this day</span></div>
+      </div>
+      <article class="detail" id="detail" aria-live="polite"></article>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="hotels" data-view="hotels">
+  <div class="wrap">
+    <p class="eyebrow">Where to stay</p>
+    <h2 style="font-size:clamp(34px,5vw,56px);font-weight:700">Six bases. All five-star.</h2>
+    <p class="lede">The blue outline marks the pick for each base. With dog mode on, the pick switches to a hotel that takes dogs.</p>
+    <div class="grid" id="hotelgrid"></div>
+  </div>
+</section>
+
+<section class="band" id="dog" data-view="dog">
+  <div class="wrap">
+    <p class="eyebrow">Traveling with your dog</p>
+    <h2 style="font-size:clamp(34px,5vw,56px);font-weight:700">Start the paperwork early.</h2>
+    <p class="lede">Dogs flying in from China need a rabies antibody test and a 90-day wait before they can enter Switzerland. For a late-June arrival, that means starting in winter.</p>
+    <div class="cols">
+      <div class="panel">
+        <h3>Entry timeline, counted back from late June</h3>
+        <ol class="steps">
+          <li><span class="when">By Jan 2027</span><span>Confirm the ISO 15-digit microchip, implanted before the rabies shot. Book the vet.</span></li>
+          <li><span class="when">By mid-Feb</span><span>Rabies vaccination, recorded against the microchip number.</span></li>
+          <li><span class="when">By mid-Mar</span><span>Blood draw for the antibody (titer) test, at least 30 days after the shot, tested at an EU-approved lab. The result must be 0.5 IU/ml or higher.</span></li>
+          <li><span class="when">90 days</span><span>Mandatory wait counted from the blood draw date.</span></li>
+          <li><span class="when">3 wks before</span><span>Apply for the Swiss import permit (FSVO/BLV) for a dog arriving from a rabies-risk country.</span></li>
+          <li><span class="when">Final 10 days</span><span>Official veterinary health certificate. Fly into Zurich, Geneva or Basel only, and declare at customs.</span></li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h3>Dogs on Swiss transport</h3>
+        <ul class="plain">
+          <li><b>Most trains, boats and buses:</b> a Day Pass for Dogs covers everything for a full day in 1st or 2nd class. It costs CHF 25, rising to CHF 27 from 13 Dec 2026. Dogs under 30 cm at the shoulder ride free in a carrier.</li>
+          <li><b>Jungfrau region:</b> dogs ride free to Grindelwald, Lauterbrunnen, Mürren and First. Eigergletscher to Jungfraujoch needs a paid dog ticket, sold at stations only.</li>
+          <li><b>Gornergrat:</b> dogs ride free.</li>
+          <li><b>Glacier Express:</b> <span class="pill no">No dogs</span> Food is served throughout the train. Guide dogs are the only exception.</li>
+          <li><b>Dining cars and themed boat cruises:</b> no dogs.</li>
+          <li><b>Italian Greyhound note:</b> at 3,000 m there's snow and cold wind even in June. Pack a warm coat and booties.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Not dog-friendly on this plan</h3>
+        <ul class="plain">
+          <li><span class="pill no">No dogs</span> <b>Glacier Express</b>. Use regional trains on the same line, or a private driver.</li>
+          <li><span class="pill no">No dogs</span> <b>The Omnia, Zermatt</b>, which bans pets and service animals. Stay at Riffelalp Resort instead.</li>
+          <li><span class="pill no">No dogs</span> <b>Tandem paragliding</b> and hotel <b>spas</b>.</li>
+          <li><span class="pill chk">Check ahead</span> <b>Matterhorn helicopter flight</b>, <b>Glacier 3000</b>, <b>Oeschinensee gondola</b>, <b>Pilatus</b>, private boat charters.</li>
+          <li><span class="pill chk">Check ahead</span> <b>Going home:</b> confirm China's pet re-entry rules (GACC) before you leave.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="book" data-view="book">
+  <div class="wrap">
+    <p class="eyebrow">Before you go</p>
+    <h2 style="font-size:clamp(34px,5vw,56px);font-weight:700">Book these first.</h2>
+    <div class="cols">
+      <div class="panel">
+        <h3>Booking order</h3>
+        <ol class="steps">
+          <li><span class="when">Now</span><span>Riffelalp or The Omnia, Bürgenstock, The Alpina, Badrutt's Palace, The Dolder Grand. Late June fills early.</span></li>
+          <li><span class="when">Early</span><span>Glacier Express Excellence Class: one car, very few seats. It's about CHF 540 on top of a 1st-class ticket (2026 price).</span></li>
+          <li><span class="when">~3 months</span><span>Glacier Express 1st class seat reservations and the helicopter flight.</span></li>
+          <li><span class="when">1 month</span><span>Swiss Travel Pass, 1st class, 12 days, plus SBB luggage forwarding between hotels.</span></li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h3>Late June, practically</h3>
+        <ul class="plain">
+          <li><b>Light:</b> sunrise is around 5:30. Book rooms facing the peaks and take the first lift up.</li>
+          <li><b>Snow:</b> upper trails like the top of the Five Lakes Walk can still be snowy. Bring waterproof boots.</li>
+          <li><b>Weather:</b> afternoon storms build in the mountains. Shoot in the morning and save afternoons for lakes, spas and shopping.</li>
+          <li><b>Layers:</b> it can be 28°C in Lucerne and near freezing at Jungfraujoch on the same day.</li>
+          <li><b>Gstaad:</b> high season starts in July, so confirm boutique and hotel opening dates.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Shopping stops</h3>
+        <ul class="plain">
+          <li><b>Gstaad Promenade:</b> car-free street of designer boutiques and jewelers.</li>
+          <li><b>St. Moritz, Via Serlas:</b> luxury fashion and watches, right outside Badrutt's.</li>
+          <li><b>Zurich, Bahnhofstrasse:</b> Swiss watchmakers, flagship stores, chocolatiers.</li>
+          <li><b>Lucerne old town:</b> watch and jewelry houses along the Schwanenplatz.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="refs" data-view="refs">
+  <div class="wrap">
+    <p class="eyebrow">References</p>
+    <h2 style="font-size:clamp(34px,5vw,56px);font-weight:700">Check the details.</h2>
+    <ul class="refs">
+      <li><a href="https://www.blv.admin.ch/en/travelling-with-dogs-cats-and-ferrets">Travelling with dogs, cats and ferrets</a><span>Swiss Federal Food Safety and Veterinary Office (FSVO/BLV)</span></li>
+      <li><a href="https://www.sbb.ch/en/travelcards-and-tickets/tickets-for-switzerland/1-day-travelpass/1-day-travelpass-for-dogs.html">Day Pass for Dogs</a><span>SBB Swiss Federal Railways</span></li>
+      <li><a href="https://www.myswitzerland.com/en/experiences/glacier-express/">Glacier Express</a><span>Switzerland Tourism. Timetable, classes, dog policy</span></li>
+      <li><a href="https://jungfrau.ch/en-gb/faq">Jungfrau Railways FAQ</a><span>Jungfraujoch, First, seat reservations</span></li>
+      <li><a href="https://gornergrat.ch/en/pages/faqs">Gornergrat Bahn FAQ</a><span>Tickets, sunrise trains, dogs</span></li>
+      <li><a href="https://www.glacier3000.ch/en/activites">Glacier 3000 activities</a><span>Peak Walk, Glacier Walk, live openings</span></li>
+      <li><a href="https://www.thealpinagstaad.ch/en/luxury-hotel-gstaad/dogs-at-the-alpina-gstaad">Dogs at The Alpina Gstaad</a><span>Hotel dog policy and fees</span></li>
+      <li><a href="https://www.thedoldergrand.com/en/faqs/">The Dolder Grand FAQ</a><span>Dog policy, shuttle, spa</span></li>
+    </ul>
+  </div>
+</section>
+
+<footer><div class="wrap">Prices and policies were checked in November 2026 and can change. Confirm with each hotel and operator when you book. The map is schematic.</div></footer>
+
+<script>
+const HOTELS={
+ luc:{base:"Lucerne · Days 1–2",name:"Bürgenstock Hotel & Alpine Spa",desc:"Cliff-top resort 450 m above Lake Lucerne, with an infinity pool and its own funicular down to the boats.",pet:"ok",petNote:"Dogs welcome, CHF 60 per night. Not in the Spices or RitzCoffier restaurants.",pick:true},
+ jun:{base:"Jungfrau · Days 3–4",name:"Victoria-Jungfrau Grand Hotel & Spa",desc:"Interlaken's 1865 grande dame, facing the Jungfrau, with a short train ride to Grindelwald.",pet:"ok",petNote:"Dogs accepted. Confirm the fee when booking.",pick:true},
+ jun2:{base:"Jungfrau · alternative",name:"Private luxury chalet, Grindelwald",desc:"Closer to First and Bachalpsee for sunrise, with Eiger views from the balcony.",pet:"chk",petNote:"Varies by chalet. Filter for dogs allowed."},
+ gst:{base:"Gstaad · Days 5–6",name:"The Alpina Gstaad",desc:"Modern chalet-palace with a Michelin-starred restaurant and a Six Senses Spa, a walk from the Promenade.",pet:"ok",petNote:"CHF 80 per dog per day. Dogs allowed in the Lounge & Terrace only, not in the spa.",pick:true},
+ gst2:{base:"Gstaad · alternative",name:"Gstaad Palace",desc:"The fairy-tale turreted landmark above the village. A classic, family-run palace hotel.",pet:"ok",petNote:"Listed as dog-friendly. Confirm, as it opens seasonally."},
+ zer:{base:"Zermatt · Days 7–8",name:"The Omnia",desc:"Design hotel on a rock above town, reached through a tunnel and glass lift, with Matterhorn suites.",pet:"no",petNote:"No pets and no service animals.",pick:true},
+ zer2:{base:"Zermatt · dog-friendly pick",name:"Riffelalp Resort 2222m",desc:"At 2,222 m on the Gornergrat line, with Europe's highest outdoor pool and the Matterhorn from the terrace.",pet:"ok",petNote:"CHF 20 per night, one dog per room.",dogPick:true},
+ stm:{base:"St. Moritz · Days 9–10",name:"Badrutt's Palace Hotel",desc:"The 1896 icon on Via Serlas. Lakeside, with a Rolls-Royce pickup from the station.",pet:"ok",petNote:"Dogs welcome, with a fee. Not in the bar.",pick:true},
+ zur:{base:"Zurich · Day 11",name:"The Dolder Grand",desc:"Hilltop palace above the city with a 4,000 m² spa and an hourly shuttle to Bahnhofstrasse.",pet:"ok",petNote:"Dogs welcome. Only assistance dogs in the Spa Café.",pick:true}
+};
+const DAYS=[
+ {d:1,short:"Lucerne",title:"Arrive. Straight to the lake.",travel:"Zurich Airport to Lucerne, about 1 h by train. Then a boat and funicular, or a car, up to Bürgenstock.",leg:"a",hotel:"luc",
+  sites:[{t:"Afternoon",n:"Settle in at Bürgenstock",p:"Pool and terrace views across Lake Lucerne to Pilatus.",pet:"ok",ll:[8.38,46.99]},
+         {t:"Blue hour",n:"Chapel Bridge and Water Tower",p:"Shoot from the Rathausquai with the old town lit up behind.",pet:"ok",ll:[8.307,47.052]}],
+  tip:"Jet lag helps here: you'll be awake for the 5:30 sunrise over the lake."},
+ {d:2,short:"Lucerne",title:"Pilatus and the lake.",travel:"Boat to Alpnachstad, then the cogwheel railway up and the cable car down to Kriens.",leg:null,hotel:"luc",
+  sites:[{t:"Morning",n:"Mt. Pilatus round trip",p:"The world's steepest cogwheel railway, with views to 70 peaks from the top.",pet:"chk",petNote:"Confirm dog rules with Pilatus-Bahnen.",ll:[8.25,46.98]},
+         {t:"Midday",n:"Lake Lucerne paddle steamer",p:"Historic steamers. Sit on the upper deck for photos.",pet:"ok",petNote:"Fine on scheduled boats with the dog day pass. Not on themed or dining cruises.",ll:[8.40,47.0]},
+         {t:"Sunset",n:"Private boat charter",p:"A wooden motorboat from Bürgenstock pier for golden hour.",pet:"chk",alt:"Ask the operator, or walk the Felsenweg cliff path instead.",ll:[8.42,46.98]},
+         {t:"Evening",n:"Alpine Spa",p:"",pet:"no",alt:"Dogs stay in the room. Ask the concierge for a sitter.",ll:null}],
+  tip:"Do Pilatus first thing, before afternoon cloud builds on the summit."},
+ {d:3,short:"Jungfrau",title:"Over the Brünig to the Eiger.",travel:"Luzern–Interlaken Express over the Brünig Pass, about 2 h, then on to Grindelwald or your Interlaken hotel.",leg:"b",hotel:"jun",
+  sites:[{t:"Afternoon",n:"Lauterbrunnen valley",p:"Staubbach Falls drops 300 m beside the village. The classic church-and-falls shot is from the meadow path.",pet:"ok",ll:[7.909,46.594]},
+         {t:"Late",n:"Mürren cliff village",p:"Cable car up for evening light on the Eiger, Mönch and Jungfrau.",pet:"ok",ll:[7.892,46.559]},
+         {t:"Alt.",n:"Tandem paragliding over Interlaken",p:"Great aerial footage between the two lakes.",pet:"no",alt:"Not possible with a dog. Leave the dog with a sitter or skip it.",ll:[7.86,46.69]}],
+  tip:"Dogs ride free on the trains to Lauterbrunnen, Grindelwald and Mürren."},
+ {d:4,short:"Jungfrau",title:"Bachalpsee sunrise. Top of Europe.",travel:"First gondola from Grindelwald, then hike about 1 h each way. Afternoon: Eiger Express to Jungfraujoch.",leg:null,hotel:"jun",
+  sites:[{t:"5:30",n:"Bachalpsee",p:"The Schreckhorn and Wetterhorn reflected in the lake. The best shot in the region. Usually snow-free by late June.",pet:"ok",ll:[8.023,46.67]},
+         {t:"Midday",n:"First Cliff Walk",p:"A steel walkway bolted to the cliff below the summit station.",pet:"ok",ll:[8.054,46.66]},
+         {t:"Afternoon",n:"Jungfraujoch, 3,454 m",p:"Aletsch Glacier, Ice Palace and the Sphinx terrace. Go on the clearest day.",pet:"chk",petNote:"Allowed, but buy the paid dog ticket from Eigergletscher at a station. Bring a coat.",ll:[7.985,46.547]}],
+  tip:"If clouds are down, swap Jungfraujoch for the Schynige Platte flower garden. It's in bloom in late June."},
+ {d:5,short:"Gstaad",title:"Turquoise lake, then Gstaad.",travel:"Forward the luggage. Train via Spiez to Kandersteg, up to the lake, then via Zweisimmen to Gstaad on the GoldenPass line.",leg:"c",hotel:"gst",
+  sites:[{t:"Morning",n:"Oeschinensee",p:"Glacier-fed lake under 3,000 m cliffs. Walk the upper panorama trail for the postcard view.",pet:"chk",petNote:"Trail is fine; confirm the gondola.",ll:[7.727,46.498]},
+         {t:"Afternoon",n:"GoldenPass to Gstaad",p:"Panoramic windows through the Simmental.",pet:"ok",ll:[7.37,46.55]},
+         {t:"Evening",n:"Gstaad Promenade",p:"First stroll and dinner. The village glows at dusk.",pet:"ok",ll:[7.283,46.475]}],
+  tip:"Luggage forwarding means you hike Oeschinensee with only a camera bag."},
+ {d:6,short:"Gstaad",title:"A bridge between two peaks.",travel:"Hotel car to Col du Pillon, about 25 min, then the cable car to 3,000 m.",leg:null,hotel:"gst",
+  sites:[{t:"Morning",n:"Glacier 3000 Peak Walk",p:"The only suspension bridge linking two summits. The Matterhorn, Mont Blanc and Jungfrau are all in view.",pet:"chk",petNote:"Confirm dog access with Glacier 3000.",ll:[7.205,46.354]},
+         {t:"Afternoon",n:"Lauenensee",p:"A quiet lake with waterfalls behind it. Gentle walk, great late light.",pet:"ok",ll:[7.33,46.395]},
+         {t:"Late",n:"Promenade shopping",p:"Designer boutiques and jewelers on a car-free street.",pet:"ok",ll:[7.283,46.475]},
+         {t:"Evening",n:"Six Senses Spa",p:"",pet:"no",alt:"Dogs stay in the room or with the hotel's dog-sitter.",ll:null}],
+  tip:"Gstaad's high season starts in July. Confirm opening hours for the boutiques you want."},
+ {d:7,short:"Zermatt",title:"To the Matterhorn.",travel:"Gstaad to Zweisimmen, Spiez, the Lötschberg tunnel, Visp and Zermatt. About 3–3.5 h.",leg:"d",hotel:"zer",hotelDog:"zer2",
+  sites:[{t:"Afternoon",n:"Car-free village",p:"Electric taxi to the hotel. Wander Hinterdorf's old larch-wood barns.",pet:"ok",ll:[7.749,46.02]},
+         {t:"Sunset",n:"Kirchbrücke bridge",p:"The classic Matterhorn glow over the river, shot from the bridge.",pet:"ok",ll:[7.748,46.021]}],
+  tip:"The Omnia doesn't allow dogs. Riffelalp does, and it puts you on the Gornergrat line for sunrise."},
+ {d:8,short:"Zermatt",title:"Gornergrat sunrise. Heli over the peaks.",travel:"First Gornergrat train up. Walk down to Riffelsee.",leg:null,hotel:"zer",hotelDog:"zer2",
+  sites:[{t:"Sunrise",n:"Gornergrat, 3,089 m",p:"29 peaks over 4,000 m and the Gorner Glacier.",pet:"ok",petNote:"Dogs ride free.",ll:[7.785,45.983]},
+         {t:"Morning",n:"Riffelsee reflection",p:"The Matterhorn mirrored on a still morning. 20 min below Rotenboden.",pet:"ok",ll:[7.77,45.988]},
+         {t:"Midday",n:"Five Lakes Walk (lower part)",p:"Stellisee is the photo lake. The upper part may still be under snow.",pet:"ok",ll:[7.80,46.02]},
+         {t:"Afternoon",n:"Private helicopter flight",p:"Air Zermatt circling the Matterhorn face. The splurge of the trip.",pet:"chk",alt:"Confirm with the operator. Plan on a dog-sitter.",ll:[7.756,46.03]}],
+  tip:"Stay at Riffelalp and you're on the first train up without even going down to town."},
+ {d:9,short:"St. Moritz",title:"Glacier Express, Excellence Class.",travel:"Zermatt to St. Moritz, about 8 h. In summer the Excellence departure has run at around 8:52, arriving about 16:37.",leg:"gx",hotel:"stm",
+  sites:[{t:"All day",n:"Glacier Express",p:"291 bridges, the Oberalp Pass, the Rhine Gorge and the Landwasser Viaduct, with a five-course lunch and wine pairing.",pet:"no",alt:"Take regional trains on the same line (change at Brig/Andermatt and Chur) with the dog day pass, or book a private driver.",ll:[8.59,46.63]},
+         {t:"Evening",n:"Badrutt's Palace",p:"Rolls-Royce pickup from the station. Drinks overlooking the lake.",pet:"ok",ll:[9.839,46.497]}],
+  tip:"Sit on the right side heading east for the Rhine Gorge."},
+ {d:10,short:"St. Moritz",title:"The Engadin light.",travel:"Funicular, a short train ride to Pontresina, and walks.",leg:null,hotel:"stm",
+  sites:[{t:"Sunrise",n:"Muottas Muragl",p:"Looking straight down the chain of Upper Engadin lakes. Arguably the best view in the Engadin.",pet:"ok",ll:[9.902,46.527]},
+         {t:"Midday",n:"Val Roseg",p:"Flat walk or horse carriage to a glacier-fed lake, with a lunch hut at the end.",pet:"ok",ll:[9.88,46.42]},
+         {t:"Afternoon",n:"Via Serlas shopping",p:"Luxury boutiques and watchmakers.",pet:"ok",ll:[9.839,46.497]}],
+  tip:"The Engadin is high and dry, so the air is clear and the light is crisp. Shoot the lakes in the evening when the wind drops."},
+ {d:11,short:"Zurich",title:"Zurich. Last shopping.",travel:"St. Moritz to Chur to Zurich, about 3.5 h, along the Walensee.",leg:"e",hotel:"zur",
+  sites:[{t:"Afternoon",n:"Bahnhofstrasse",p:"Swiss watch flagships, jewelers, and Sprüngli chocolate.",pet:"ok",ll:[8.539,47.372]},
+         {t:"Evening",n:"Lindenhof and the old town",p:"The view over the Limmat at dusk.",pet:"ok",ll:[8.541,47.373]}],
+  tip:"The Dolder's hourly shuttle runs to the centre, or take the historic Dolderbahn."},
+ {d:12,short:"Fly out",title:"Fly home.",travel:"The Dolder Grand to Zurich Airport, about 20 min by car.",leg:null,hotel:"zur",
+  sites:[{t:"Morning",n:"Spa, then the airport",p:"Use the VAT-refund desks at the airport for the shopping receipts.",pet:"chk",alt:"Before you fly, confirm China's re-entry paperwork for the dog.",ll:[8.56,47.45]}],
+  tip:"Leave room in your luggage for the watches."}
+];
+const LEGS={
+ a:[[8.56,47.45],[8.54,47.38],[8.31,47.05],[8.38,46.99]],
+ b:[[8.38,46.99],[8.31,47.05],[8.16,46.76],[7.86,46.69],[8.04,46.62]],
+ c:[[8.04,46.62],[7.86,46.69],[7.68,46.69],[7.66,46.56],[7.69,46.49],[7.66,46.56],[7.68,46.69],[7.37,46.55],[7.28,46.47]],
+ d:[[7.28,46.47],[7.37,46.55],[7.68,46.69],[7.66,46.56],[7.88,46.29],[7.75,46.02]],
+ gx:[[7.75,46.02],[7.88,46.29],[7.99,46.32],[8.37,46.53],[8.59,46.63],[8.85,46.70],[9.20,46.77],[9.53,46.85],[9.55,46.69],[9.68,46.66],[9.84,46.50]],
+ e:[[9.84,46.50],[9.68,46.66],[9.55,46.69],[9.53,46.85],[9.44,47.04],[9.10,47.12],[8.80,47.21],[8.54,47.38]]
+};
+const BORDER=[[6.13,46.14],[5.96,46.13],[6.07,46.41],[6.12,46.60],[6.43,46.77],[6.46,46.97],[6.70,47.04],[6.93,47.18],[7.00,47.30],[6.88,47.36],[7.20,47.45],[7.17,47.49],[7.43,47.43],[7.55,47.58],[7.70,47.54],[8.00,47.56],[8.23,47.62],[8.43,47.57],[8.40,47.70],[8.60,47.79],[8.87,47.70],[9.18,47.66],[9.55,47.53],[9.67,47.38],[9.53,47.27],[9.47,47.05],[9.60,47.06],[9.87,46.95],[10.10,46.84],[10.47,46.87],[10.49,46.62],[10.25,46.57],[10.10,46.23],[9.95,46.38],[9.68,46.30],[9.43,46.50],[9.27,46.48],[9.03,46.03],[9.02,45.82],[8.89,45.90],[8.90,46.08],[8.70,46.10],[8.44,46.25],[8.44,46.46],[8.28,46.41],[8.11,46.25],[7.96,46.00],[7.86,45.92],[7.54,45.98],[7.18,45.86],[7.04,45.93],[6.80,46.13],[6.80,46.39],[6.52,46.45],[6.22,46.31],[6.13,46.14]];
+const LAKES=[
+ [[6.15,46.21],[6.40,46.33],[6.65,46.40],[6.90,46.40],[6.80,46.44],[6.55,46.51],[6.30,46.42],[6.15,46.24]],
+ [[8.25,47.03],[8.42,47.0],[8.60,46.98],[8.60,46.93],[8.45,46.97],[8.28,46.99]],
+ [[7.63,46.73],[7.75,46.66],[7.86,46.67],[7.73,46.72]],
+ [[8.54,47.35],[8.70,47.25],[8.90,47.20],[8.85,47.23],[8.62,47.30]]
+];
+const BASES=[["Zurich",8.54,47.38,"r"],["Lucerne",8.31,47.05,"l"],["Grindelwald",8.04,46.62,"r"],["Gstaad",7.28,46.47,"l"],["Zermatt",7.75,46.02,"l"],["St. Moritz",9.84,46.50,"r"]];
+const P=(lon,lat)=>[(lon-5.85)*200,(47.88-lat)*292];
+const NS="http://www.w3.org/2000/svg";
+const map=document.getElementById("map");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||map).appendChild(e);return e}
+const pts=a=>a.map(([x,y])=>P(x,y).map(v=>v.toFixed(1)).join(",")).join(" ");
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+let current=1,dog=false;
+try{const s=localStorage.getItem("ch-dog");if(s==="1")dog=true;const d=parseInt(localStorage.getItem("ch-day"));if(d>=1&&d<=12)current=d}catch(e){}
+
+function drawMap(){
+ map.innerHTML="";
+ el("polygon",{points:pts(BORDER),fill:"var(--map-land)",stroke:"var(--ink-2)","stroke-width":"1.2","stroke-linejoin":"round"});
+ LAKES.forEach(l=>el("polygon",{points:pts(l),fill:"var(--accent)","fill-opacity":"0.18",stroke:"none"}));
+ const day=DAYS[current-1];
+ Object.entries(LEGS).forEach(([k,a])=>{
+   const active=day.leg===k;const isGx=k==="gx";
+   el("polyline",{points:pts(a),fill:"none",stroke:isGx?"var(--gx)":"var(--route)","stroke-width":active?6:3.5,"stroke-linecap":"round","stroke-linejoin":"round","stroke-dasharray":isGx?"10 8":"none",opacity:day.leg&&!active?0.28:0.95});
+ });
+ if(dog&&day.leg==="gx"){el("text",{x:P(8.7,46.45)[0],y:P(8.7,46.45)[1],"font-size":"17","font-weight":"600",fill:"var(--no)","text-anchor":"middle","font-family":"var(--body)"}).textContent="Regional trains with dog"}
+ day.sites.forEach(s=>{if(!s.ll)return;const [x,y]=P(...s.ll);
+   el("circle",{cx:x,cy:y,r:9,fill:"var(--accent)","fill-opacity":"0.2"});
+   el("circle",{cx:x,cy:y,r:5,fill:s.pet==="no"&&dog?"var(--no)":"var(--accent)",stroke:"var(--map-land)","stroke-width":"1.5"});
+ });
+ const activeBase=HOTELS[day.hotel].base.split(" ·")[0];
+ BASES.forEach(([n,lon,lat,side])=>{const [x,y]=P(lon,lat);const on=n===activeBase||(activeBase==="Jungfrau"&&n==="Grindelwald");
+   el("circle",{cx:x,cy:y,r:on?9:7,fill:"var(--ink)",stroke:"var(--map-land)","stroke-width":"2.5"});
+   const t=el("text",{x:side==="r"?x+15:x-15,y:y+6,"font-size":on?"21":"18","font-weight":on?"700":"600",fill:"var(--ink)","text-anchor":side==="r"?"start":"end","font-family":"var(--display)",stroke:"var(--map-land)","stroke-width":"5","paint-order":"stroke"});t.textContent=n;
+ });
+ [["Geneva",6.14,46.2],["Interlaken",7.86,46.69],["Chur",9.53,46.85]].forEach(([n,lon,lat])=>{const [x,y]=P(lon,lat);
+   el("circle",{cx:x,cy:y,r:3,fill:"var(--ink-2)"});
+   const t=el("text",{x:x+8,y:y-7,"font-size":"14",fill:"var(--ink-2)","font-family":"var(--body)",stroke:"var(--map-land)","stroke-width":"4","paint-order":"stroke"});t.textContent=n;});
+}
+const PETLABEL={ok:"Dogs welcome",no:"No dogs",chk:"Check ahead"};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function renderDetail(){
+ const d=DAYS[current-1];
+ const hk=dog&&d.hotelDog?d.hotelDog:d.hotel;const h=HOTELS[hk];
+ const sites=d.sites.map(s=>`<li class="pet-${s.pet}"><div class="row"><span><span class="time">${esc(s.t)}</span><span class="name">${esc(s.n)}</span></span><span class="pill ${s.pet}">${PETLABEL[s.pet]}</span></div>${s.p?`<p>${esc(s.p)}</p>`:""}${s.petNote?`<p>${esc(s.petNote)}</p>`:""}${s.alt?`<div class="alt">${esc(s.alt)}</div>`:""}</li>`).join("");
+ const swap=dog&&d.hotelDog?`<p>Switched from The Omnia, which doesn't allow pets.</p>`:(!dog&&d.hotelDog?`<p>Bringing the dog? Switch to ${esc(HOTELS[d.hotelDog].name)}. The Omnia doesn't allow pets.</p>`:"");
+ document.getElementById("detail").innerHTML=`
+  <p class="eyebrow">Day ${d.d} of 12 · ${esc(d.short)}</p>
+  <h3>${esc(d.title)}</h3>
+  <p class="meta">${esc(d.travel)}</p>
+  <h4>What to do</h4><ul class="sites">${sites}</ul>
+  <h4>Tonight</h4>
+  <div class="hotelbox"><b>${esc(h.name)} <span class="pill ${h.pet}">${PETLABEL[h.pet]}</span></b><p>${esc(h.petNote)}</p>${swap}</div>
+  <h4>Photo tip</h4><p class="tip">${esc(d.tip)}</p>
+  <div class="navrow"><button type="button" id="prev" ${current===1?"disabled":""}>‹ Day ${current-1||""}</button><button type="button" id="next" ${current===12?"disabled":""}>Day ${current<12?current+1:""} ›</button></div>`;
+ document.getElementById("prev").onclick=()=>select(current-1);
+ document.getElementById("next").onclick=()=>select(current+1);
+}
+function renderDays(){
+ const wrap=document.getElementById("days");
+ wrap.innerHTML=DAYS.map(d=>`<button type="button" data-d="${d.d}" aria-pressed="${d.d===current}">Day ${d.d}<small>${esc(d.short)}</small></button>`).join("");
+ wrap.querySelectorAll("button").forEach(b=>b.onclick=()=>select(+b.dataset.d));
+}
+function renderHotels(){
+ document.getElementById("hotelgrid").innerHTML=Object.values(HOTELS).map(h=>{
+  const pick=dog?(h.dogPick||(h.pick&&h.pet==="ok")):h.pick;
+  return `<div class="hcard pet-${h.pet}${pick?" pick":""}">${pick?`<span class="badge">Our pick</span>`:""}<span class="base">${esc(h.base)}</span><h3>${esc(h.name)}</h3><p>${esc(h.desc)}</p><p><span class="pill ${h.pet}">${PETLABEL[h.pet]}</span> ${esc(h.petNote)}</p></div>`}).join("");
+}
+function select(n){if(n<1||n>12)return;current=n;try{localStorage.setItem("ch-day",n)}catch(e){}
+ document.querySelectorAll("#days button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.d===n));
+ const btn=document.querySelector(`#days button[data-d="${n}"]`);if(btn)btn.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"});
+ drawMap();renderDetail();}
+/* dog mode: the home-page switch and the compact top-bar switch stay in sync */
+const toggles=[...document.querySelectorAll(".dogtoggle")];
+function setDog(v){dog=v;toggles.forEach(t=>t.checked=v);document.body.classList.toggle("dog",v);try{localStorage.setItem("ch-dog",v?"1":"0")}catch(e){}drawMap();renderDetail();renderHotels();}
+toggles.forEach(t=>{t.checked=dog;t.addEventListener("change",()=>setDog(t.checked))});
+document.body.classList.toggle("dog",dog);
+renderDays();drawMap();renderDetail();renderHotels();
+
+/* hero ridgeline */
+function ridge(){
+ const c=document.getElementById("ridge");const dpr=window.devicePixelRatio||1;
+ const w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;c.width=w*dpr;c.height=h*dpr;const x=c.getContext("2d");x.scale(dpr,dpr);x.clearRect(0,0,w,h);
+ const dark=css("--bg")==="#000000";
+ const layers=dark?["#1c1c1e","#2c2c2e","#3a3a3c"]:["#d9dde3","#b9c0ca","#8e98a6"];
+ let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+ layers.forEach((col,i)=>{
+  const base=h*(0.35+i*0.2),amp=h*(0.42-i*0.1);
+  x.beginPath();x.moveTo(0,h);let y=base;
+  for(let px=0;px<=w;px+=w/(18+i*6)){
+   const peak=Math.sin(px/w*Math.PI*(1.6+i)+i)*0.5+0.5;
+   y=base-amp*peak*(0.6+rnd()*0.4);x.lineTo(px,y);
+  }
+  x.lineTo(w,h);x.closePath();x.fillStyle=col;x.fill();
+  if(i===0){x.save();x.clip();x.fillStyle=dark?"rgba(255,255,255,.08)":"rgba(255,255,255,.75)";x.fillRect(0,0,w,base-amp*0.75);x.restore();}
+ });
+ x.fillStyle=css("--bg-alt");x.fillRect(0,h-2,w,2);
+}
+window.addEventListener("resize",ridge);
+
+/* menu + pages: the home page is the default; each menu item shows one section */
+const VIEWS={home:"Switzerland in Late June",plan:"Day by day",hotels:"Hotels",dog:"Dog checklist",book:"Book ahead",refs:"References"};
+const menuBtn=document.getElementById("menubtn"),menu=document.getElementById("menu");
+const menuLinks=[...menu.querySelectorAll("a")];
+const isOpen=()=>menu.classList.contains("open");
+function setMenu(open,focusFirst){
+ menu.classList.toggle("open",open);menuBtn.setAttribute("aria-expanded",open);
+ if(open&&focusFirst)(menu.querySelector('[aria-current="page"]')||menuLinks[0]).focus();
+}
+menuBtn.addEventListener("click",e=>setMenu(!isOpen(),e.detail===0));
+menuBtn.addEventListener("keydown",e=>{if(e.key==="ArrowDown"){e.preventDefault();setMenu(true,true)}});
+document.addEventListener("click",e=>{if(isOpen()&&!menu.contains(e.target)&&!menuBtn.contains(e.target))setMenu(false)});
+menu.addEventListener("click",e=>{if(e.target.closest("a"))setMenu(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&isOpen()){setMenu(false);menuBtn.focus()}});
+menu.addEventListener("keydown",e=>{
+ const i=menuLinks.indexOf(document.activeElement);if(i<0)return;
+ let n=null;
+ if(e.key==="ArrowDown")n=(i+1)%menuLinks.length;else if(e.key==="ArrowUp")n=(i-1+menuLinks.length)%menuLinks.length;
+ else if(e.key==="Home")n=0;else if(e.key==="End")n=menuLinks.length-1;
+ else if(e.key==="Tab"&&((!e.shiftKey&&i===menuLinks.length-1)||(e.shiftKey&&i===0))){setMenu(false);return}
+ if(n!==null){e.preventDefault();menuLinks[n].focus()}
+});
+let firstView=true;
+function showView(){
+ const h=location.hash.slice(1);const view=VIEWS[h]?h:"home";
+ document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==view);
+ menuLinks.forEach(a=>{if(a.hash==="#"+view)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+ document.title=view==="home"?VIEWS.home:`${VIEWS[view]} · ${VIEWS.home}`;
+ setMenu(false);
+ window.scrollTo(0,0);
+ if(view==="home")ridge();
+ if(!firstView){const head=document.querySelector(`[data-view="${view}"] h1, [data-view="${view}"] h2`);if(head){head.setAttribute("tabindex","-1");head.focus({preventScroll:true})}}
+ firstView=false;
+}
+window.addEventListener("hashchange",showView);
+showView();
+</script>
+</body>
+</html>
