@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Switzerland in Late June</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css">
 <style>
 :root{
   /* Layout idea: Apple-style stacked bands — big type, quiet surfaces, one interactive map at the center */
@@ -101,11 +102,30 @@ nav.top .wrap{display:flex;gap:14px;align-items:center;height:48px;font-size:13p
 .days button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .planner{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
 .mapcard{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:10px;position:sticky;top:64px}
-.mapcard svg{display:block;width:100%;height:auto}
-.maplegend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--ink-2);padding:6px 10px 6px}
-.maplegend i{display:inline-block;width:22px;height:0;border-top:3px solid var(--route);vertical-align:3px;margin-right:6px}
-.maplegend i.gx{border-top:3px dashed var(--gx)}
-.maplegend i.dot{width:9px;height:9px;border:0;border-radius:50%;background:var(--accent);vertical-align:0}
+.mapwrap{position:relative}
+#map{height:min(620px,72vh);border-radius:14px;overflow:hidden;background:var(--bg-alt)}
+.mapnote{display:grid;place-items:center;height:100%;padding:24px;text-align:center;color:var(--ink-2);font-size:15px}
+.mapbtn{position:absolute;top:10px;left:10px;z-index:2;font:inherit;font-size:13px;font-weight:600;background:#fff;color:#1d1d1f;border:0;border-radius:999px;padding:7px 13px;box-shadow:0 1px 5px rgba(0,0,0,.28);cursor:pointer}
+.mapbtn:hover{background:#f2f2f2}
+.mapbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.mapchip{position:absolute;top:10px;right:56px;z-index:2;max-width:calc(100% - 200px);background:var(--no);color:#fff;font-size:12px;font-weight:600;border-radius:999px;padding:7px 12px;box-shadow:0 1px 5px rgba(0,0,0,.28)}
+.maplibregl-popup-content{font-family:var(--body);font-size:13px;color:#1d1d1f;border-radius:10px;padding:8px 12px}
+.maplibregl-popup-content b{display:block;font-size:14px}
+.maplegend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--ink-2);padding:8px 10px 6px}
+.maplegend i{display:inline-block;width:22px;height:0;border-top:3px solid #6f8f8a;vertical-align:3px;margin-right:6px}
+.maplegend i.on{border-top:5px solid #0071e3}
+.maplegend i.gx{border-top:3px dashed #e8590c}
+.maplegend i.num{width:14px;height:14px;border:2px solid #fff;border-radius:50%;background:#0071e3;vertical-align:-2px;box-shadow:0 0 0 1px var(--line)}
+.num{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;margin-right:8px;vertical-align:1px;text-decoration:none!important}
+.dog .pet-no .num{background:var(--no)}
+.dayrows{list-style:none;margin:0;padding:0}
+.dayrows li{border-top:1px solid var(--line)}
+.dayrows li:first-child{border-top:0}
+.dayrows button{display:flex;gap:12px;width:100%;text-align:left;font:inherit;font-size:15px;color:var(--ink);background:none;border:0;padding:10px 4px;cursor:pointer;border-radius:8px}
+.dayrows button:hover{background:var(--bg-alt)}
+.dayrows button:focus-visible{outline:3px solid var(--accent);outline-offset:-1px}
+.dayrows b{flex:0 0 52px;font-variant-numeric:tabular-nums}
+.dayrows span{color:var(--ink-2)}
 .detail{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px}
 .detail h3{font-size:28px;font-weight:700;line-height:1.15}
 .detail .meta{color:var(--ink-2);font-size:15px;margin:8px 0 0}
@@ -157,6 +177,7 @@ footer{padding:28px 0 56px;color:var(--ink-2);font-size:12px}
 @media (max-width:820px){
   .planner{grid-template-columns:1fr}
   .mapcard{position:static}
+  #map{height:420px}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:22px}
   .band{padding:56px 0}
   .steps li{grid-template-columns:78px 1fr}
@@ -220,8 +241,12 @@ footer{padding:28px 0 56px;color:var(--ink-2);font-size:12px}
     <div class="days" id="days" role="group" aria-label="Choose a day"></div>
     <div class="planner">
       <div class="mapcard">
-        <svg id="map" viewBox="0 0 940 640" role="img" aria-label="Map of Switzerland showing the trip route"></svg>
-        <div class="maplegend"><span><i></i>Scenic trains</span><span><i class="gx"></i>Glacier Express</span><span><i class="dot"></i>Sights for this day</span></div>
+        <div class="mapwrap">
+          <div id="map" role="region" aria-label="Interactive map of the trip route. Drag to pan; use the + and − buttons to zoom."></div>
+          <button type="button" class="mapbtn" id="mapall" hidden>‹ Whole trip</button>
+          <div class="mapchip" id="mapchip" hidden>With your dog: regional trains on this line</div>
+        </div>
+        <div class="maplegend"><span><i class="on"></i>This day's route</span><span><i></i>Other train legs</span><span><i class="gx"></i>Glacier Express</span><span><i class="num"></i>Stops for this day</span></div>
       </div>
       <article class="detail" id="detail" aria-live="polite"></article>
     </div>
@@ -335,6 +360,7 @@ footer{padding:28px 0 56px;color:var(--ink-2);font-size:12px}
 
 <footer><div class="wrap">Prices and policies were checked in November 2026 and can change. Confirm with each hotel and operator when you book. The map is schematic.</div></footer>
 
+<script src="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js"></script>
 <script>
 const HOTELS={
  luc:{base:"Lucerne · Days 1–2",name:"Bürgenstock Hotel & Alpine Spa",desc:"Cliff-top resort 450 m above Lake Lucerne, with an infinity pool and its own funicular down to the boats.",pet:"ok",petNote:"Dogs welcome, CHF 60 per night. Not in the Spices or RitzCoffier restaurants.",pick:true},
@@ -414,52 +440,155 @@ const LEGS={
  gx:[[7.75,46.02],[7.88,46.29],[7.99,46.32],[8.37,46.53],[8.59,46.63],[8.85,46.70],[9.20,46.77],[9.53,46.85],[9.55,46.69],[9.68,46.66],[9.84,46.50]],
  e:[[9.84,46.50],[9.68,46.66],[9.55,46.69],[9.53,46.85],[9.44,47.04],[9.10,47.12],[8.80,47.21],[8.54,47.38]]
 };
-const BORDER=[[6.13,46.14],[5.96,46.13],[6.07,46.41],[6.12,46.60],[6.43,46.77],[6.46,46.97],[6.70,47.04],[6.93,47.18],[7.00,47.30],[6.88,47.36],[7.20,47.45],[7.17,47.49],[7.43,47.43],[7.55,47.58],[7.70,47.54],[8.00,47.56],[8.23,47.62],[8.43,47.57],[8.40,47.70],[8.60,47.79],[8.87,47.70],[9.18,47.66],[9.55,47.53],[9.67,47.38],[9.53,47.27],[9.47,47.05],[9.60,47.06],[9.87,46.95],[10.10,46.84],[10.47,46.87],[10.49,46.62],[10.25,46.57],[10.10,46.23],[9.95,46.38],[9.68,46.30],[9.43,46.50],[9.27,46.48],[9.03,46.03],[9.02,45.82],[8.89,45.90],[8.90,46.08],[8.70,46.10],[8.44,46.25],[8.44,46.46],[8.28,46.41],[8.11,46.25],[7.96,46.00],[7.86,45.92],[7.54,45.98],[7.18,45.86],[7.04,45.93],[6.80,46.13],[6.80,46.39],[6.52,46.45],[6.22,46.31],[6.13,46.14]];
-const LAKES=[
- [[6.15,46.21],[6.40,46.33],[6.65,46.40],[6.90,46.40],[6.80,46.44],[6.55,46.51],[6.30,46.42],[6.15,46.24]],
- [[8.25,47.03],[8.42,47.0],[8.60,46.98],[8.60,46.93],[8.45,46.97],[8.28,46.99]],
- [[7.63,46.73],[7.75,46.66],[7.86,46.67],[7.73,46.72]],
- [[8.54,47.35],[8.70,47.25],[8.90,47.20],[8.85,47.23],[8.62,47.30]]
-];
+/* bases: name, lon, lat, which side the label sits on */
 const BASES=[["Zurich",8.54,47.38,"r"],["Lucerne",8.31,47.05,"l"],["Grindelwald",8.04,46.62,"r"],["Gstaad",7.28,46.47,"l"],["Zermatt",7.75,46.02,"l"],["St. Moritz",9.84,46.50,"r"]];
-const P=(lon,lat)=>[(lon-5.85)*200,(47.88-lat)*292];
-const NS="http://www.w3.org/2000/svg";
-const map=document.getElementById("map");
-function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||map).appendChild(e);return e}
-const pts=a=>a.map(([x,y])=>P(x,y).map(v=>v.toFixed(1)).join(",")).join(" ");
-const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-let current=1,dog=false;
-try{const s=localStorage.getItem("ch-dog");if(s==="1")dog=true;const d=parseInt(localStorage.getItem("ch-day"));if(d>=1&&d<=12)current=d}catch(e){}
+const C={active:"#0071e3",leg:"#5f8580",gx:"#e8590c",site:"#0071e3",no:"#d70015",ink:"#1d1d1f"};
+const MAP_STYLE="https://tiles.openfreemap.org/styles/liberty";
+const DEM="https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png";
+const reduceMotion=()=>window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let current=0,dog=false; /* 0 = whole trip, nothing chosen */
+try{if(localStorage.getItem("ch-dog")==="1")dog=true}catch(e){}
 
-function drawMap(){
- map.innerHTML="";
- el("polygon",{points:pts(BORDER),fill:"var(--map-land)",stroke:"var(--ink-2)","stroke-width":"1.2","stroke-linejoin":"round"});
- LAKES.forEach(l=>el("polygon",{points:pts(l),fill:"var(--accent)","fill-opacity":"0.18",stroke:"none"}));
- const day=DAYS[current-1];
- Object.entries(LEGS).forEach(([k,a])=>{
-   const active=day.leg===k;const isGx=k==="gx";
-   el("polyline",{points:pts(a),fill:"none",stroke:isGx?"var(--gx)":"var(--route)","stroke-width":active?6:3.5,"stroke-linecap":"round","stroke-linejoin":"round","stroke-dasharray":isGx?"10 8":"none",opacity:day.leg&&!active?0.28:0.95});
- });
- if(dog&&day.leg==="gx"){el("text",{x:P(8.7,46.45)[0],y:P(8.7,46.45)[1],"font-size":"17","font-weight":"600",fill:"var(--no)","text-anchor":"middle","font-family":"var(--body)"}).textContent="Regional trains with dog"}
- day.sites.forEach(s=>{if(!s.ll)return;const [x,y]=P(...s.ll);
-   el("circle",{cx:x,cy:y,r:9,fill:"var(--accent)","fill-opacity":"0.2"});
-   el("circle",{cx:x,cy:y,r:5,fill:s.pet==="no"&&dog?"var(--no)":"var(--accent)",stroke:"var(--map-land)","stroke-width":"1.5"});
- });
- const activeBase=HOTELS[day.hotel].base.split(" ·")[0];
- BASES.forEach(([n,lon,lat,side])=>{const [x,y]=P(lon,lat);const on=n===activeBase||(activeBase==="Jungfrau"&&n==="Grindelwald");
-   el("circle",{cx:x,cy:y,r:on?9:7,fill:"var(--ink)",stroke:"var(--map-land)","stroke-width":"2.5"});
-   const t=el("text",{x:side==="r"?x+15:x-15,y:y+6,"font-size":on?"21":"18","font-weight":on?"700":"600",fill:"var(--ink)","text-anchor":side==="r"?"start":"end","font-family":"var(--display)",stroke:"var(--map-land)","stroke-width":"5","paint-order":"stroke"});t.textContent=n;
- });
- [["Geneva",6.14,46.2],["Interlaken",7.86,46.69],["Chur",9.53,46.85]].forEach(([n,lon,lat])=>{const [x,y]=P(lon,lat);
-   el("circle",{cx:x,cy:y,r:3,fill:"var(--ink-2)"});
-   const t=el("text",{x:x+8,y:y-7,"font-size":"14",fill:"var(--ink-2)","font-family":"var(--body)",stroke:"var(--map-land)","stroke-width":"4","paint-order":"stroke"});t.textContent=n;});
+let gl=null,glReady=false,drawRaf=0,drawTimer=0,pulseRaf=0,popup=null;
+const activeBaseName=day=>{const b=HOTELS[day.hotel].base.split(" ·")[0];return b==="Jungfrau"?"Grindelwald":b};
+const mappedSites=day=>day?day.sites.filter(s=>s.ll):[];
+function legsFC(){return{type:"FeatureCollection",features:Object.entries(LEGS).map(([k,a])=>({type:"Feature",properties:{k},geometry:{type:"LineString",coordinates:a}}))}}
+function basesFC(){const day=current?DAYS[current-1]:null;const on=day?activeBaseName(day):"";
+ return{type:"FeatureCollection",features:BASES.map(([n,lon,lat,side])=>({type:"Feature",properties:{n,on:n===on,anchor:side==="r"?"left":"right"},geometry:{type:"Point",coordinates:[lon,lat]}}))}}
+function sitesFC(){const day=current?DAYS[current-1]:null;
+ /* stops in the right half of the view get their label on the left, so labels stay inside the map */
+ const mid=day&&window.maplibregl?viewBounds().getCenter().lng:0;
+ return{type:"FeatureCollection",features:mappedSites(day).map((s,i)=>({type:"Feature",properties:{i:i+1,n:s.n,t:s.t,no:dog&&s.pet==="no",anchor:s.ll[0]>mid+0.01?"right":"left"},geometry:{type:"Point",coordinates:s.ll}}))}}
+/* the bit of map to show for the current choice */
+function viewBounds(){
+ const b=new maplibregl.LngLatBounds();const day=current?DAYS[current-1]:null;
+ if(!day){Object.values(LEGS).forEach(a=>a.forEach(c=>b.extend(c)));return b}
+ if(day.leg)LEGS[day.leg].forEach(c=>b.extend(c));
+ mappedSites(day).forEach(s=>b.extend(s.ll));
+ const base=BASES.find(x=>x[0]===activeBaseName(day));if(base)b.extend([base[1],base[2]]);
+ return b;
 }
+function initMap(){
+ if(gl)return;
+ const box=document.getElementById("map");
+ if(!window.maplibregl){box.innerHTML='<p class="mapnote">The map couldn\'t load. Check your internet connection and reload the page.</p>';return}
+ gl=new maplibregl.Map({container:box,style:MAP_STYLE,bounds:viewBounds(),fitBoundsOptions:{padding:40},cooperativeGestures:true,attributionControl:{compact:true},dragRotate:false,pitchWithRotate:false});
+ gl.touchZoomRotate.disableRotation();
+ gl.addControl(new maplibregl.NavigationControl({showCompass:false}),"top-right");
+ gl.addControl(new maplibregl.FullscreenControl(),"top-right");
+ gl.addControl(new maplibregl.ScaleControl({unit:"metric"}),"bottom-left");
+ gl.on("load",()=>{
+  /* outdoor look: shaded relief under the roads and labels */
+  gl.addSource("dem",{type:"raster-dem",tiles:[DEM],encoding:"terrarium",tileSize:256,maxzoom:14,attribution:"Terrain: Mapzen, AWS Open Data"});
+  const under=(gl.getStyle().layers.find(l=>/^(waterway|water)/.test(l.id))||{}).id;
+  gl.addLayer({id:"relief",type:"hillshade",source:"dem",paint:{"hillshade-exaggeration":0.45,"hillshade-shadow-color":"#4a5a52","hillshade-highlight-color":"#ffffff","hillshade-accent-color":"#6b7a70"}},under);
+
+  gl.addSource("legs",{type:"geojson",data:legsFC(),lineMetrics:true});
+  gl.addLayer({id:"legs-base",type:"line",source:"legs",filter:["!=",["get","k"],"gx"],layout:{"line-cap":"round","line-join":"round"},paint:{"line-color":C.leg,"line-width":3,"line-opacity":0.7}});
+  gl.addLayer({id:"gx-base",type:"line",source:"legs",filter:["==",["get","k"],"gx"],layout:{"line-join":"round"},paint:{"line-color":C.gx,"line-width":3.5,"line-opacity":0.85,"line-dasharray":[2,1.6]}});
+  const none=["==",["get","k"],"__none__"];
+  gl.addLayer({id:"leg-glow",type:"line",source:"legs",filter:none,layout:{"line-cap":"round","line-join":"round"},paint:{"line-width":22,"line-blur":12,"line-opacity":0.45,"line-gradient":"#000"}});
+  gl.addLayer({id:"leg-casing",type:"line",source:"legs",filter:none,layout:{"line-cap":"round","line-join":"round"},paint:{"line-width":11,"line-gradient":"#fff"}});
+  gl.addLayer({id:"leg-active",type:"line",source:"legs",filter:none,layout:{"line-cap":"round","line-join":"round"},paint:{"line-width":6,"line-gradient":"#000"}});
+
+  gl.addSource("bases",{type:"geojson",data:basesFC()});
+  gl.addLayer({id:"bases-dot",type:"circle",source:"bases",paint:{"circle-radius":["case",["get","on"],8,6],"circle-color":C.ink,"circle-stroke-color":"#fff","circle-stroke-width":2.5}});
+  gl.addLayer({id:"bases-label",type:"symbol",source:"bases",layout:{"text-field":["get","n"],"text-font":["Noto Sans Bold"],"text-size":["case",["get","on"],17,14],"text-anchor":["get","anchor"],"text-radial-offset":0.85,"text-allow-overlap":true},paint:{"text-color":C.ink,"text-halo-color":"#fff","text-halo-width":2}});
+
+  gl.addSource("sites",{type:"geojson",data:sitesFC()});
+  gl.addLayer({id:"sites-halo",type:"circle",source:"sites",paint:{"circle-radius":16,"circle-color":["case",["get","no"],C.no,C.site],"circle-opacity":0.25}});
+  gl.addLayer({id:"sites-dot",type:"circle",source:"sites",paint:{"circle-radius":13,"circle-color":["case",["get","no"],C.no,C.site],"circle-stroke-color":"#fff","circle-stroke-width":3}});
+  gl.addLayer({id:"sites-num",type:"symbol",source:"sites",layout:{"text-field":["to-string",["get","i"]],"text-font":["Noto Sans Bold"],"text-size":13,"text-allow-overlap":true,"text-ignore-placement":true},paint:{"text-color":"#fff"}});
+  gl.addLayer({id:"sites-label",type:"symbol",source:"sites",layout:{"text-field":["get","n"],"text-font":["Noto Sans Bold"],"text-size":13,"text-anchor":["get","anchor"],"text-radial-offset":1.5,"text-max-width":12,"text-optional":true},paint:{"text-color":C.ink,"text-halo-color":"#fff","text-halo-width":2}});
+
+  gl.on("click","sites-dot",e=>{const f=e.features[0];if(popup)popup.remove();
+   popup=new maplibregl.Popup({offset:16,closeButton:false}).setLngLat(f.geometry.coordinates).setHTML(`<b>${f.properties.i}. ${esc(f.properties.n)}</b>${esc(f.properties.t)}`).addTo(gl)});
+  gl.on("mouseenter","sites-dot",()=>gl.getCanvas().style.cursor="pointer");
+  gl.on("mouseleave","sites-dot",()=>gl.getCanvas().style.cursor="");
+  /* start with the map credits folded into the (i) button so they don't cover stops */
+  const at=box.querySelector(".maplibregl-ctrl-attrib");if(at)at.classList.remove("maplibregl-compact-show");
+  glReady=true;refreshMap();moveCamera(false);
+ });
+}
+/* update colours and markers without moving the camera (used by dog mode too) */
+function refreshMap(){
+ const day=current?DAYS[current-1]:null;
+ document.getElementById("mapall").hidden=!current;
+ document.getElementById("mapchip").hidden=!(dog&&day&&day.leg==="gx");
+ if(!glReady)return;
+ if(popup){popup.remove();popup=null}
+ gl.getSource("bases").setData(basesFC());
+ gl.getSource("sites").setData(sitesFC());
+ const leg=day&&day.leg;
+ gl.setPaintProperty("legs-base","line-opacity",day?0.35:0.75);
+ gl.setPaintProperty("gx-base","line-opacity",day&&leg!=="gx"?0.4:0.85);
+ const f=["==",["get","k"],leg||"__none__"];
+ ["leg-glow","leg-casing","leg-active"].forEach(id=>gl.setFilter(id,f));
+ startPulse(mappedSites(day).length>0);
+}
+/* draw the day's route from start to finish */
+function setDrawn(p){
+ const col=current&&DAYS[current-1].leg==="gx"?C.gx:C.active;
+ const g=c=>p>=1?c:["step",["line-progress"],c,Math.max(p,0.0001),"rgba(0,0,0,0)"];
+ gl.setPaintProperty("leg-glow","line-gradient",g(col));
+ gl.setPaintProperty("leg-casing","line-gradient",g("#ffffff"));
+ gl.setPaintProperty("leg-active","line-gradient",g(col));
+}
+function drawLeg(){
+ cancelAnimationFrame(drawRaf);
+ if(!glReady)return;
+ if(reduceMotion()){setDrawn(1);return}
+ const t0=performance.now(),D=1300;
+ const step=now=>{const t=Math.min(1,(now-t0)/D);setDrawn(1-Math.pow(1-t,3));if(t<1)drawRaf=requestAnimationFrame(step)};
+ drawRaf=requestAnimationFrame(step);
+}
+/* gentle pulse on the numbered stops so they're easy to spot */
+function startPulse(on){
+ cancelAnimationFrame(pulseRaf);
+ if(!glReady)return;
+ if(!on||reduceMotion()){gl.setPaintProperty("sites-halo","circle-radius",18);gl.setPaintProperty("sites-halo","circle-opacity",0.25);return}
+ const tick=now=>{const t=(now%1600)/1600;
+  gl.setPaintProperty("sites-halo","circle-radius",14+t*16);gl.setPaintProperty("sites-halo","circle-opacity",0.45*(1-t));
+  pulseRaf=requestAnimationFrame(tick)};
+ pulseRaf=requestAnimationFrame(tick);
+}
+/* zoom to the chosen day (or the whole trip), then draw its route */
+function moveCamera(animate){
+ if(!glReady)return;
+ clearTimeout(drawTimer);cancelAnimationFrame(drawRaf);
+ const w=gl.getContainer().clientWidth;const pad=Math.round(Math.max(36,Math.min(70,w*0.09)));
+ /* extra room at the sides for place labels, and at the bottom for the scale bar */
+ const side=pad+Math.round(Math.min(current?100:70,w*0.12));
+ const cam=gl.cameraForBounds(viewBounds(),{padding:{top:pad+24,bottom:pad+30,left:side,right:side},maxZoom:current?12.5:9});
+ if(!cam)return;
+ const hasLeg=current&&DAYS[current-1].leg;
+ if(hasLeg)setDrawn(0);
+ const dur=animate&&!reduceMotion()?1900:0;
+ if(dur)gl.flyTo({center:cam.center,zoom:cam.zoom,duration:dur,curve:1.5,essential:true});
+ else gl.jumpTo({center:cam.center,zoom:cam.zoom});
+ if(hasLeg)drawTimer=setTimeout(drawLeg,dur?dur-200:0);
+}
+document.getElementById("mapall").onclick=()=>select(0);
+
 const PETLABEL={ok:"Dogs welcome",no:"No dogs",chk:"Check ahead"};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function renderOverview(){
+ document.getElementById("detail").innerHTML=`
+  <p class="eyebrow">Whole trip · 12 days</p>
+  <h3>Zurich and back, the scenic way.</h3>
+  <p class="meta">Six bases joined by scenic trains, with the Glacier Express in the middle. Pick a day to zoom in to its route and stops.</p>
+  <h4>The days</h4>
+  <ul class="dayrows">${DAYS.map(d=>`<li><button type="button" data-d="${d.d}"><b>Day ${d.d}</b><span>${esc(d.short)} · ${esc(d.title)}</span></button></li>`).join("")}</ul>
+  <div class="navrow"><button type="button" disabled>‹</button><button type="button" id="next">Day 1 ›</button></div>`;
+ document.querySelectorAll(".dayrows button").forEach(b=>b.onclick=()=>select(+b.dataset.d));
+ document.getElementById("next").onclick=()=>select(1);
+}
 function renderDetail(){
+ if(!current){renderOverview();return}
  const d=DAYS[current-1];
  const hk=dog&&d.hotelDog?d.hotelDog:d.hotel;const h=HOTELS[hk];
- const sites=d.sites.map(s=>`<li class="pet-${s.pet}"><div class="row"><span><span class="time">${esc(s.t)}</span><span class="name">${esc(s.n)}</span></span><span class="pill ${s.pet}">${PETLABEL[s.pet]}</span></div>${s.p?`<p>${esc(s.p)}</p>`:""}${s.petNote?`<p>${esc(s.petNote)}</p>`:""}${s.alt?`<div class="alt">${esc(s.alt)}</div>`:""}</li>`).join("");
+ let k=0;
+ const sites=d.sites.map(s=>`<li class="pet-${s.pet}"><div class="row"><span>${s.ll?`<span class="num" aria-label="Map stop ${++k}">${k}</span>`:""}<span class="time">${esc(s.t)}</span><span class="name">${esc(s.n)}</span></span><span class="pill ${s.pet}">${PETLABEL[s.pet]}</span></div>${s.p?`<p>${esc(s.p)}</p>`:""}${s.petNote?`<p>${esc(s.petNote)}</p>`:""}${s.alt?`<div class="alt">${esc(s.alt)}</div>`:""}</li>`).join("");
  const swap=dog&&d.hotelDog?`<p>Switched from The Omnia, which doesn't allow pets.</p>`:(!dog&&d.hotelDog?`<p>Bringing the dog? Switch to ${esc(HOTELS[d.hotelDog].name)}. The Omnia doesn't allow pets.</p>`:"");
  document.getElementById("detail").innerHTML=`
   <p class="eyebrow">Day ${d.d} of 12 · ${esc(d.short)}</p>
@@ -469,13 +598,13 @@ function renderDetail(){
   <h4>Tonight</h4>
   <div class="hotelbox"><b>${esc(h.name)} <span class="pill ${h.pet}">${PETLABEL[h.pet]}</span></b><p>${esc(h.petNote)}</p>${swap}</div>
   <h4>Photo tip</h4><p class="tip">${esc(d.tip)}</p>
-  <div class="navrow"><button type="button" id="prev" ${current===1?"disabled":""}>‹ Day ${current-1||""}</button><button type="button" id="next" ${current===12?"disabled":""}>Day ${current<12?current+1:""} ›</button></div>`;
+  <div class="navrow"><button type="button" id="prev">‹ ${current===1?"Whole trip":"Day "+(current-1)}</button><button type="button" id="next" ${current===12?"disabled":""}>Day ${current<12?current+1:""} ›</button></div>`;
  document.getElementById("prev").onclick=()=>select(current-1);
  document.getElementById("next").onclick=()=>select(current+1);
 }
 function renderDays(){
  const wrap=document.getElementById("days");
- wrap.innerHTML=DAYS.map(d=>`<button type="button" data-d="${d.d}" aria-pressed="${d.d===current}">Day ${d.d}<small>${esc(d.short)}</small></button>`).join("");
+ wrap.innerHTML=`<button type="button" data-d="0" aria-pressed="${current===0}">Whole trip<small>All 12 days</small></button>`+DAYS.map(d=>`<button type="button" data-d="${d.d}" aria-pressed="${d.d===current}">Day ${d.d}<small>${esc(d.short)}</small></button>`).join("");
  wrap.querySelectorAll("button").forEach(b=>b.onclick=()=>select(+b.dataset.d));
 }
 function renderHotels(){
@@ -483,16 +612,16 @@ function renderHotels(){
   const pick=dog?(h.dogPick||(h.pick&&h.pet==="ok")):h.pick;
   return `<div class="hcard pet-${h.pet}${pick?" pick":""}">${pick?`<span class="badge">Our pick</span>`:""}<span class="base">${esc(h.base)}</span><h3>${esc(h.name)}</h3><p>${esc(h.desc)}</p><p><span class="pill ${h.pet}">${PETLABEL[h.pet]}</span> ${esc(h.petNote)}</p></div>`}).join("");
 }
-function select(n){if(n<1||n>12)return;current=n;try{localStorage.setItem("ch-day",n)}catch(e){}
+function select(n){if(n<0||n>12)return;current=n;
  document.querySelectorAll("#days button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.d===n));
  const btn=document.querySelector(`#days button[data-d="${n}"]`);if(btn)btn.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"});
- drawMap();renderDetail();}
+ renderDetail();refreshMap();moveCamera(true);}
 /* dog mode: the home-page switch and the compact top-bar switch stay in sync */
 const toggles=[...document.querySelectorAll(".dogtoggle")];
-function setDog(v){dog=v;toggles.forEach(t=>t.checked=v);document.body.classList.toggle("dog",v);try{localStorage.setItem("ch-dog",v?"1":"0")}catch(e){}drawMap();renderDetail();renderHotels();}
+function setDog(v){dog=v;toggles.forEach(t=>t.checked=v);document.body.classList.toggle("dog",v);try{localStorage.setItem("ch-dog",v?"1":"0")}catch(e){}refreshMap();renderDetail();renderHotels();}
 toggles.forEach(t=>{t.checked=dog;t.addEventListener("change",()=>setDog(t.checked))});
 document.body.classList.toggle("dog",dog);
-renderDays();drawMap();renderDetail();renderHotels();
+renderDays();renderDetail();renderHotels();refreshMap();
 
 /* hero ridgeline */
 function ridge(){
@@ -546,6 +675,7 @@ function showView(){
  setMenu(false);
  window.scrollTo(0,0);
  if(view==="home")ridge();
+ if(view==="plan"){if(gl){gl.resize();moveCamera(false)}else initMap()}
  if(!firstView){const head=document.querySelector(`[data-view="${view}"] h1, [data-view="${view}"] h2`);if(head){head.setAttribute("tabindex","-1");head.focus({preventScroll:true})}}
  firstView=false;
 }
